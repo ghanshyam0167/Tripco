@@ -23,8 +23,8 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["traveler", "company", "admin"],
-      default: "traveler",
+      enum: ["TRAVELER", "COMPANY", "ADMIN"],
+      default: "TRAVELER",
     },
 
     isActive: {
@@ -80,7 +80,7 @@ userSchema.statics.matchPasswordAndGenerateToken = async function (
     user: {
       _id: user._id,
       email: user.email,
-      role: user.role,
+      role: user.role.toUpperCase(),
     },
   };
 };

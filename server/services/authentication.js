@@ -8,13 +8,13 @@ function createTokenForUser(user) {
       role: user.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "7d" }
+    { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
   );
 }
 
 function validateToken(token) {
-    const payload = JWT.verify(token, secret_key)
-    return payload
+  const payload = jwt.verify(token, process.env.JWT_SECRET);
+  return payload;
 }
 
-module.exports = { createTokenForUser, validateToken};
+module.exports = { createTokenForUser, validateToken };

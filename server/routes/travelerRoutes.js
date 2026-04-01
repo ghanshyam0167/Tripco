@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+const router  = express.Router();
 
 const authMiddleware = require("../middlewares/authMiddleware");
 const authorizeRoles = require("../middlewares/authorizeRoles");
@@ -10,8 +10,8 @@ const {
   deleteTravelerProfile,
 } = require("../controllers/travelerController");
 
-router.get("/", authMiddleware, authorizeRoles("traveler"), getTravelerProfile);
-router.put("/", authMiddleware, authorizeRoles("traveler"), updateTravelerProfile);
-router.delete("/", authMiddleware, authorizeRoles("traveler"), deleteTravelerProfile);
+router.get("/",    authMiddleware, authorizeRoles("TRAVELER"), getTravelerProfile);
+router.put("/",    authMiddleware, authorizeRoles("TRAVELER"), updateTravelerProfile);
+router.delete("/", authMiddleware, authorizeRoles("TRAVELER"), deleteTravelerProfile);
 
 module.exports = router;

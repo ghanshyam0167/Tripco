@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: tripco-server
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./server/.env
+    environment:
+      - NODE_ENV=production
+      - CLIENT_ORIGIN=http://localhost:5173
+    restart: unless-stopped
+    networks:
+      - tripco-net
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: tripco-client
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+    networks:
+      - tripco-net
+
+networks:
+  tripco-net:
+    driver: bridge

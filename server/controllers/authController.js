@@ -6,8 +6,8 @@ const registerUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 🔐 role control
-    const role = req.body.role === "company" ? "company" : "traveler";
+    // 🔐 role control — only allow TRAVELER or COMPANY on self-registration
+    const role = req.body.role === "COMPANY" ? "COMPANY" : "TRAVELER";
 
     // 1️⃣ Validation
     if (!email || !password) {
@@ -32,7 +32,7 @@ const registerUser = async (req, res) => {
     try {
       const user = await User.create([{ email, password, role }], { session });
 
-      if (role === "traveler") {
+      if (role === "TRAVELER") {
         await TravelerProfile.create(
           [{ userId: user[0]._id, fullName: "New User" }],
           { session }

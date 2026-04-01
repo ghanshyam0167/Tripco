@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router();
+const router  = express.Router();
 
 const authMiddleware = require("../middlewares/authMiddleware");
 const authorizeRoles = require("../middlewares/authorizeRoles");
@@ -10,8 +10,8 @@ const {
   deleteCompanyProfile,
 } = require("../controllers/companyController");
 
-router.get("/", authMiddleware, authorizeRoles("company"), getCompanyProfile);
-router.put("/", authMiddleware, authorizeRoles("company"), updateCompanyProfile);
-router.delete("/", authMiddleware, authorizeRoles("company"), deleteCompanyProfile);
+router.get("/",    authMiddleware, authorizeRoles("COMPANY"), getCompanyProfile);
+router.put("/",    authMiddleware, authorizeRoles("COMPANY"), updateCompanyProfile);
+router.delete("/", authMiddleware, authorizeRoles("COMPANY"), deleteCompanyProfile);
 
 module.exports = router;
