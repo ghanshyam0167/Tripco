@@ -1,9 +1,10 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import { Toaster, ToastBar, toast } from "react-hot-toast";
 
 // Auth
 import Login        from "../pages/auth/Login";
 import Register     from "../pages/auth/Register";
+import VerifyEmail  from "../pages/auth/VerifyEmail";
 
 // Traveler
 import TravelerDashboard from "../pages/traveler/Dashboard";
@@ -19,6 +20,8 @@ import CompanyBookings   from "../pages/company/Bookings";
 
 // Admin
 import AdminDashboard    from "../pages/admin/Dashboard";
+import AdminUsers        from "../pages/admin/Users";
+import AdminPendingRequests from "../pages/admin/PendingRequests";
 
 // Misc
 import NotFound          from "../pages/NotFound";
@@ -40,16 +43,43 @@ const AppRoutes = () => {
             fontSize: 14,
             fontWeight: 600,
             boxShadow: "var(--shadow-lg)",
+            paddingRight: 4,
           },
           success: { duration: 3000 },
           error:   { duration: 4000 },
         }}
-      />
+      >
+        {(t) => (
+          <ToastBar toast={t}>
+            {({ icon, message }) => (
+              <>
+                <button
+                  onClick={() => toast.dismiss(t.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                    margin: 0,
+                    display: "inline-flex",
+                    alignItems: "center",
+                  }}
+                  title="Click to dismiss"
+                >
+                  {icon}
+                </button>
+                {message}
+              </>
+            )}
+          </ToastBar>
+        )}
+      </Toaster>
 
       <Routes>
         {/* Public */}
-        <Route path="/login"    element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login"         element={<Login />} />
+        <Route path="/register"      element={<Register />} />
+        <Route path="/verify-email"  element={<VerifyEmail />} />
 
         {/* Root redirect */}
         <Route path="/" element={<Navigate to="/login" replace />} />
@@ -145,6 +175,26 @@ const AppRoutes = () => {
             <ProtectedRoute>
               <RoleRoute allowedRoles={["ADMIN"]}>
                 <AdminDashboard />
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute>
+              <RoleRoute allowedRoles={["ADMIN"]}>
+                <AdminUsers />
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/requests"
+          element={
+            <ProtectedRoute>
+              <RoleRoute allowedRoles={["ADMIN"]}>
+                <AdminPendingRequests />
               </RoleRoute>
             </ProtectedRoute>
           }

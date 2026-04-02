@@ -2,20 +2,23 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../api/auth.api";
 import { useAuthStore } from "../../store/authStore";
-import { Plane, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Plane, Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
 
 const Login = () => {
   const setAuth  = useAuthStore((s) => s.setAuth);
   const navigate = useNavigate();
 
-  const [form, setForm]       = useState({ email: "", password: "" });
-  const [showPwd, setShowPwd] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const [form, setForm]           = useState({ email: "", password: "" });
+  const [showPwd, setShowPwd]     = useState(false);
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState("");
+  const [notVerified, setNotVerified] = useState(false);
+  const [unverifiedUserId, setUnverifiedUserId] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setNotVerified(false);
     setLoading(true);
     try {
       const data = await login(form);
@@ -24,8 +27,22 @@ const Login = () => {
       else if (data.user.role === "COMPANY")  navigate("/company");
       else                                    navigate("/admin");
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { message?: string } } };
-      setError(e.response?.data?.message || "Login failed. Please try again.");
+      const e = err as { response?: { data?: { message?: string; code?: string; userId?: string; email?: string } } };
+      const msg = e.response?.data?.message;
+      const code = e.response?.data?.code;
+      if (code === "EMAIL_NOT_VERIFIED") {
+        setNotVerified(true);
+        setUnverifiedUserId(e.response?.data?.userId || "");
+      } else if (msg === "User not found") {
+        navigate("/register", {
+          state: {
+            email: form.email,
+            userNotFound: true,
+          },
+        });
+      } else {
+        setError(msg || "Login failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -93,6 +110,44 @@ const Login = () => {
               Sign in to continue your journey
             </p>
           </div>
+
+          {notVerified && (
+            <div
+              style={{
+                background: "rgba(245,158,11,.08)", border: "1px solid rgba(245,158,11,.2)",
+                borderRadius: "var(--radius-md)", padding: "14px 16px", marginBottom: 20,
+                display: "flex", gap: 10, alignItems: "flex-start",
+              }}
+            >
+              <Mail size={16} color="#b45309" style={{ flexShrink: 0, marginTop: 1 }} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 13, fontWeight: 700, color: "#b45309" }}>Email not verified</p>
+                <p style={{ fontSize: 12, color: "#92400e", marginTop: 2 }}>
+                  Please verify your email before logging in.
+                </p>
+                <button
+                  id="go-to-verify"
+                  type="button"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      userId: unverifiedUserId,
+                      email: form.email,
+                    });
+                    navigate(`/verify-email?${params.toString()}`);
+                  }}
+                  style={{
+                    marginTop: 8,
+                    background: "var(--violet-600)", color: "#fff",
+                    border: "none", borderRadius: "var(--radius-md)",
+                    padding: "6px 14px", fontSize: 12, fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  Verify Email →
+                </button>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div

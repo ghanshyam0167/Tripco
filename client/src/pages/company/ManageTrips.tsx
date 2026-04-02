@@ -9,9 +9,10 @@ import type { Trip } from "../../types";
 import { PlusCircle, MapPin, Users, Trash2, Pencil } from "lucide-react";
 import toast from "react-hot-toast";
 
-const statusColors = {
+const statusColors: Record<string, { bg: string; text: string }> = {
   active:    { bg: "rgba(34,197,94,.12)",  text: "#15803d" },
   inactive:  { bg: "rgba(100,116,139,.1)", text: "var(--slate-600)" },
+  draft:     { bg: "rgba(245,158,11,.12)", text: "#b45309" },
   completed: { bg: "rgba(59,130,246,.1)",  text: "#1d4ed8" },
 };
 

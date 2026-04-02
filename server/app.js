@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
+const path = require("path");
 const rateLimit = require("express-rate-limit");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -19,7 +20,7 @@ mongoose
   });
 
 // ─── Security headers ──────────────────────────────────────────────────────
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 
 // ─── CORS ──────────────────────────────────────────────────────────────────
 const allowedOrigins = (process.env.CLIENT_ORIGIN || "http://localhost:5173")
@@ -42,6 +43,7 @@ app.use(
 // ─── Body parser ───────────────────────────────────────────────────────────
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // ─── Rate limiters ─────────────────────────────────────────────────────────
 const authLimiter = rateLimit({
@@ -67,6 +69,7 @@ const travelerRoutes = require("./routes/travelerRoutes");
 const companyRoutes  = require("./routes/companyRoutes");
 const tripRoutes     = require("./routes/tripRoutes");
 const bookingRoutes  = require("./routes/bookingRoutes");
+const adminRoutes    = require("./routes/adminRoutes");
 
 const errorHandler = require("./middlewares/errorHandler");
 const notFound     = require("./middlewares/notFound");
@@ -79,6 +82,7 @@ app.use("/api/traveler", travelerRoutes);
 app.use("/api/company",  companyRoutes);
 app.use("/api/trips",    tripRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/admin",    adminRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
