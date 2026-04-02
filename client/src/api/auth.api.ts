@@ -13,7 +13,20 @@ export const register = async (data: {
   email: string;
   password: string;
   role: "TRAVELER" | "COMPANY";
-}): Promise<AuthResponse> => {
+}): Promise<{ message: string; userId: string; email: string }> => {
   const res = await api.post("/auth/register", data);
+  return res.data;
+};
+
+export const verifyEmail = async (data: {
+  userId: string;
+  otp: string;
+}): Promise<AuthResponse> => {
+  const res = await api.post("/auth/verify-email", data);
+  return res.data;
+};
+
+export const resendOTP = async (data: { userId: string }): Promise<{ message: string }> => {
+  const res = await api.post("/auth/resend-otp", data);
   return res.data;
 };

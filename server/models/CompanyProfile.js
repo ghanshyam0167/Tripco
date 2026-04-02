@@ -13,7 +13,6 @@ const companyProfileSchema = new mongoose.Schema(
     // 🏢 COMPANY BASIC DETAILS
     companyName: {
       type: String,
-      required: true,
       trim: true,
     },
 
@@ -36,7 +35,6 @@ const companyProfileSchema = new mongoose.Schema(
     // 📞 CONTACT DETAILS
     contactEmail: {
       type: String,
-      required: true,
     },
 
     contactPhone: {
@@ -64,9 +62,22 @@ const companyProfileSchema = new mongoose.Schema(
 
     verificationStatus: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      enum: ["unverified", "pending", "approved", "rejected"],
+      default: "unverified",
     },
+
+    verificationMessage: {
+      type: String, // Reason for rejection or approval note
+    },
+
+    verificationHistory: [
+      {
+        status: { type: String, enum: ["pending", "approved", "rejected"] },
+        reason: String, // optional depending on admin input
+        updatedAt: { type: Date, default: Date.now },
+        updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Action taken by (admin)
+      },
+    ],
 
     // 📊 PERFORMANCE / ANALYTICS
     rating: {

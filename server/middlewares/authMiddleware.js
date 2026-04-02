@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const authMiddleware = (req, res, next) => {
+const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
@@ -17,7 +18,20 @@ const authMiddleware = (req, res, next) => {
     // 3️⃣ Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // 4️⃣ Attach user
+    // 4️⃣ Ensure user exists in DB and is active
+    const user = await User.findById(decoded._id);
+    if (!user) {
+      return res.status(401).json({
+        message: "Unauthorized: User account has been deleted",
+      });
+    }
+    if (!user.isActive) {
+      return res.status(401).json({
+        message: "Unauthorized: User account has been suspended",
+      });
+    }
+
+    // 5️⃣ Attach user
     req.user = decoded;
 
     next();

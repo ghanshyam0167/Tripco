@@ -32,6 +32,14 @@ const userSchema = new mongoose.Schema(
       default: true,
     },
 
+    // ✉️ Email verification
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailOTP: String,
+    emailOTPExpiry: Date,
+
     resetOTP: String,
     resetOTPExpiry: Date,
   },
@@ -70,6 +78,20 @@ userSchema.statics.matchPasswordAndGenerateToken = async function (
 
   if (hashedPassword !== userProvidedHash) {
     throw new Error("Incorrect Password");
+  }
+
+  if (!user.isActive) {
+    const err = new Error("Your account has been suspended. Please contact the support team.");
+    err.code = "USER_SUSPENDED";
+    throw err;
+  }
+
+  if (!user.isEmailVerified) {
+    const err = new Error("Email not verified. Please verify your email before logging in.");
+    err.code = "EMAIL_NOT_VERIFIED";
+    err.userId = user._id.toString();
+    err.email = user.email;
+    throw err;
   }
 
   // 🔥 Generate JWT

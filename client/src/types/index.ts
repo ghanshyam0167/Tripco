@@ -24,13 +24,76 @@ export interface ItineraryDay {
   title: string;
   description: string;
   activities: string[];
+  nightActivity?: {
+    isIncluded: boolean;
+    title: string;
+    description: string;
+  };
+}
+
+export interface Supervisor {
+  name: string;
+  phone: string;
+  email: string;
+  role: string;
+  experience: number;
+  idProof?: string;
+}
+
+export interface TransportDetails {
+  modeType: "same" | "multiple";
+  sameVehicle?: {
+    from: string;
+    to: string;
+    vehicleType: "Bus" | "Train" | "Flight" | "Car" | string;
+    busType?: string;
+    busNumber?: string;
+    trainNumber?: string;
+    coachType?: string;
+    flightNumber?: string;
+    flightClass?: string;
+    carType?: string;
+    acNonAc?: string;
+  };
+  multipleVehicles?: Array<{
+    day: number;
+    from: string;
+    to: string;
+    vehicleType: "Bus" | "Train" | "Flight" | "Car" | "Other" | string;
+    busType?: string;
+    busNumber?: string;
+    trainNumber?: string;
+    coachType?: string;
+    flightNumber?: string;
+    flightClass?: string;
+    carType?: string;
+    acNonAc?: string;
+    details?: string;
+  }>;
+}
+
+export interface StayDetails {
+  day?: number;
+  hotelName: string;
+  location: string;
+  roomType: "Single" | "Double" | "Deluxe" | "Suite" | string;
+  mealPlan: "Room Only" | "Breakfast" | "Half Board" | "Full Board" | string;
+  amenities: string[];
+  checkIn?: string;
+  checkOut?: string;
 }
 
 export interface Trip {
   _id: string;
   title: string;
   description?: string;
+  origin?: { location: string };
   destination: Destination;
+  transport?: TransportDetails;
+  stay?: {
+    type: "same" | "perDay";
+    details: StayDetails[];
+  };
   duration: { days: number; nights?: number };
   startDate?: string;
   endDate?: string;
@@ -42,9 +105,10 @@ export interface Trip {
   tags?: string[];
   travelStyle?: "budget" | "luxury" | "backpacking" | "family";
   images?: string[];
+  supervisors?: Supervisor[];
   rating?: number;
   totalReviews?: number;
-  status?: "active" | "inactive" | "completed";
+  status?: "active" | "inactive" | "draft" | "completed";
   companyId?: { email: string };
   companyProfileId?: { companyName: string };
   createdAt?: string;
@@ -85,7 +149,7 @@ export interface TravelerProfile {
 
 export interface CompanyProfile {
   _id: string;
-  userId: string;
+  userId: string | { email: string; isActive?: boolean };
   companyName: string;
   companyLogo?: string;
   description?: string;
@@ -96,11 +160,20 @@ export interface CompanyProfile {
   registrationNumber?: string;
   establishedYear?: number;
   isVerified?: boolean;
-  verificationStatus?: "pending" | "approved" | "rejected";
+  verificationStatus?: "unverified" | "pending" | "approved" | "rejected";
+  verificationMessage?: string;
+  verificationHistory?: {
+    status: "pending" | "approved" | "rejected";
+    reason?: string;
+    updatedAt: string;
+    updatedBy?: { email: string };
+  }[];
   rating?: number;
   totalReviews?: number;
   totalTrips?: number;
   totalBookings?: number;
   servicesOffered?: string[];
   priceRange?: { min?: number; max?: number };
+  createdAt?: string;
+  updatedAt?: string;
 }

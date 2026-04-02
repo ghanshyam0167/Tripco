@@ -24,3 +24,8 @@ export const updateCompanyProfile = async (
   const res = await api.put("/company", data);
   return res.data;
 };
+
+export const requestVerification = async (): Promise<{ message: string }> => {
+  const res = await api.post("/company/request-verification");
+  return res.data;
+};

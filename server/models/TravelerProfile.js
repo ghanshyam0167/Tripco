@@ -13,7 +13,6 @@ const travelerProfileSchema = new mongoose.Schema(
     // 👤 PERSONAL DETAILS
     fullName: {
       type: String,
-      required: true,
       trim: true,
     },
 
@@ -27,7 +26,7 @@ const travelerProfileSchema = new mongoose.Schema(
 
     gender: {
       type: String,
-      enum: ["male", "female", "other"],
+      enum: ["male", "female", "other", "prefer_not_to_say"],
     },
 
     location: {

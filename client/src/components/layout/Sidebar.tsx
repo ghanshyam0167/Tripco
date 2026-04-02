@@ -7,9 +7,9 @@ import {
   PlusCircle,
   List,
   Users,
-  BarChart3,
   LogOut,
   Plane,
+  ClipboardList,
 } from "lucide-react";
 
 interface NavLink {
@@ -36,9 +36,9 @@ const Sidebar = () => {
   ];
 
   const adminLinks: NavLink[] = [
-    { name: "Dashboard",      path: "/admin",              icon: <LayoutDashboard size={18} /> },
-    { name: "Users",          path: "/admin/users",        icon: <Users size={18} /> },
-    { name: "Reports",        path: "/admin/reports",      icon: <BarChart3 size={18} /> },
+    { name: "Dashboard",   path: "/admin",       icon: <LayoutDashboard size={18} /> },
+    { name: "Users",       path: "/admin/users", icon: <Users size={18} /> },
+    { name: "Pending Requests", path: "/admin/requests", icon: <ClipboardList size={18} /> },
   ];
 
   const links =

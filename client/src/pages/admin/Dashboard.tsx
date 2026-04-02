@@ -1,46 +1,62 @@
+import { useEffect, useState } from "react";
 import Layout from "../../components/layout/Layout";
 import StatsCard from "../../components/ui/StatsCard";
-import { Users, List, CalendarCheck, ShieldCheck } from "lucide-react";
+import PageLoader from "../../components/ui/PageLoader";
+import { getAdminStats, type AdminStats } from "../../api/admin.api";
+import { Users, List, CalendarCheck, DollarSign, TrendingUp, AlertTriangle, ShieldCheck } from "lucide-react";
+import toast from "react-hot-toast";
 
 const AdminDashboard = () => {
+  const [stats, setStats]     = useState<AdminStats | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getAdminStats()
+      .then((s) => setStats(s))
+      .catch(() => toast.error("Failed to load dashboard data"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <PageLoader />;
+
   return (
-    <Layout>
+    <Layout title="Dashboard">
       <div className="page">
+        {/* Banner */}
         <div
           style={{
-            background: "linear-gradient(135deg, #0a0a1a 0%, #1a0530 50%, #0d1f40 100%)",
+            background: "linear-gradient(135deg, #0a0a1a 0%, #12003a 50%, #0d1f40 100%)",
             borderRadius: "var(--radius-xl)", padding: "32px 36px", marginBottom: 32,
             position: "relative", overflow: "hidden",
           }}
         >
-          <div style={{ position: "absolute", top: -60, right: -60, width: 220, height: 220, background: "radial-gradient(circle, rgba(239,68,68,.25), transparent 70%)", borderRadius: "50%" }} />
+          <div style={{ position: "absolute", top: -80, right: -80, width: 240, height: 240, background: "radial-gradient(circle, rgba(239,68,68,.2), transparent 70%)", borderRadius: "50%" }} />
+          <div style={{ position: "absolute", bottom: -60, left: -40, width: 160, height: 160, background: "radial-gradient(circle, rgba(139,92,246,.2), transparent 70%)", borderRadius: "50%" }} />
           <div style={{ position: "relative", zIndex: 1 }}>
-            <p style={{ color: "rgba(255,255,255,.4)", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Admin Control Center</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <ShieldCheck size={20} color="var(--red-400)" />
+              <p style={{ color: "rgba(255,255,255,.45)", fontSize: 13, fontWeight: 600 }}>Admin Control Center</p>
+            </div>
             <h1 style={{ fontSize: 30, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
-              System Overview
+              Platform Overview
             </h1>
-            <p style={{ color: "rgba(255,255,255,.45)", marginTop: 8 }}>
-              Monitor platform-wide activity and manage system health
+            <p style={{ color: "rgba(255,255,255,.4)", marginTop: 8 }}>
+              Live stats · {new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
             </p>
           </div>
         </div>
 
-        <div className="stats-grid" style={{ marginBottom: 36 }}>
-          <StatsCard title="Total Users"    value="—"  icon={<Users size={22} />}       color="var(--violet-500)" subtitle="registered accounts" />
-          <StatsCard title="Total Trips"    value="—"  icon={<List size={22} />}         color="var(--amber-500)"  subtitle="active listings" />
-          <StatsCard title="Total Bookings" value="—"  icon={<CalendarCheck size={22} />} color="var(--green-500)"  subtitle="all time" />
-          <StatsCard title="Verified Co."   value="—"  icon={<ShieldCheck size={22} />}  color="var(--red-500)"    subtitle="verified companies" />
-        </div>
-
-        <div className="card" style={{ padding: 40, textAlign: "center", color: "var(--slate-400)" }}>
-          <ShieldCheck size={48} strokeWidth={1.5} style={{ margin: "0 auto 16px", color: "var(--slate-300)" }} />
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--slate-600)", marginBottom: 8 }}>
-            Admin endpoints coming soon
-          </h3>
-          <p style={{ fontSize: 14 }}>
-            Full admin APIs for user management, analytics, and verification are in the roadmap.
-          </p>
-        </div>
+        {/* KPI Stats */}
+        {stats && (
+          <div className="stats-grid" style={{ marginBottom: 36 }}>
+            <StatsCard title="Total Users"       value={stats.totalUsers}       icon={<Users size={22} />}        color="var(--violet-500)" subtitle="registered accounts" />
+            <StatsCard title="Total Trips"       value={stats.totalTrips}       icon={<List size={22} />}          color="var(--amber-500)"  subtitle="active listings" />
+            <StatsCard title="Total Bookings"    value={stats.totalBookings}    icon={<CalendarCheck size={22} />} color="var(--green-500)"  subtitle="all time" />
+            <StatsCard title="Platform Revenue"  value={`₹${(stats.totalRevenue || 0).toLocaleString()}`} icon={<DollarSign size={22} />} color="var(--violet-500)" subtitle="from confirmed bookings" />
+            <StatsCard title="Total Companies"   value={stats.totalCompanies}   icon={<TrendingUp size={22} />}    color="var(--amber-500)"  subtitle={`${stats.verifiedCompanies} verified`} />
+            <StatsCard title="Pending Approval"  value={stats.pendingCompanies} icon={<AlertTriangle size={22} />} color="var(--red-500)"    subtitle="companies awaiting review" />
+          </div>
+        )}
       </div>
     </Layout>
   );
