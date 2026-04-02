@@ -77,6 +77,21 @@ const notFound = require("./middlewares/notFound");
 app.get("/", (req, res) => res.json({ message: "Tripco API 🚀", version: "1.0.0" }));
 app.get("/health", (req, res) => res.json({ status: "OK", timestamp: new Date() }));
 
+// Test route to verify Cloudinary configuration
+app.get("/test-cloudinary", async (req, res) => {
+  try {
+    const cloudinary = require("cloudinary").v2;
+    const result = await cloudinary.uploader.upload(
+      "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+      { folder: "tripco_test" }
+    );
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error("Cloudinary Test Error:", error);
+    res.status(500).json({ success: false, error: error.message || error, fullError: error });
+  }
+});
+
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/traveler", travelerRoutes);
 app.use("/api/company", companyRoutes);
