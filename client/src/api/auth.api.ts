@@ -30,3 +30,25 @@ export const resendOTP = async (data: { userId: string }): Promise<{ message: st
   const res = await api.post("/auth/resend-otp", data);
   return res.data;
 };
+
+export const forgotPassword = async (data: { email: string }): Promise<{ message: string }> => {
+  const res = await api.post("/auth/forgot-password", data);
+  return res.data;
+};
+
+export const verifyResetOTP = async (data: {
+  email: string;
+  otp: string;
+}): Promise<{ message: string; resetToken: string }> => {
+  const res = await api.post("/auth/verify-otp", data);
+  return res.data;
+};
+
+export const resetPassword = async (data: {
+  email: string;
+  resetToken: string;
+  newPassword: string;
+}): Promise<{ message: string }> => {
+  const res = await api.post("/auth/reset-password", data);
+  return res.data;
+};

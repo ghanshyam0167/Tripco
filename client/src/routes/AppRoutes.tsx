@@ -2,9 +2,10 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster, ToastBar, toast } from "react-hot-toast";
 
 // Auth
-import Login        from "../pages/auth/Login";
-import Register     from "../pages/auth/Register";
-import VerifyEmail  from "../pages/auth/VerifyEmail";
+import Login          from "../pages/auth/Login";
+import Register       from "../pages/auth/Register";
+import VerifyEmail    from "../pages/auth/VerifyEmail";
+import ForgotPassword from "../pages/auth/ForgotPassword";
 
 // Traveler
 import TravelerDashboard from "../pages/traveler/Dashboard";
@@ -77,9 +78,10 @@ const AppRoutes = () => {
 
       <Routes>
         {/* Public */}
-        <Route path="/login"         element={<Login />} />
-        <Route path="/register"      element={<Register />} />
-        <Route path="/verify-email"  element={<VerifyEmail />} />
+        <Route path="/login"           element={<Login />} />
+        <Route path="/register"        element={<Register />} />
+        <Route path="/verify-email"    element={<VerifyEmail />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* Root redirect */}
         <Route path="/" element={<Navigate to="/login" replace />} />
