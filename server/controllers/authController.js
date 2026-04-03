@@ -1,5 +1,7 @@
 const User = require("../models/User");
-const { sendOTPEmail } = require("../services/emailService");
+const { sendOTPEmail, sendPasswordResetEmail } = require("../services/emailService");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 /** Generate a 6-digit OTP */
 function generateOTP() {
@@ -151,4 +153,113 @@ const loginUser = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, verifyEmail, resendOTP, loginUser };
+// ─── Forgot Password ───────────────────────────────────────────────────────
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "No account found with this email address." });
+    }
+
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Hash OTP before saving
+    const salt = await bcrypt.genSalt(10);
+    const hashedOTP = await bcrypt.hash(otp, salt);
+
+    user.resetOTP = hashedOTP;
+    user.resetOTPExpiry = otpExpiry;
+    await user.save();
+
+    sendPasswordResetEmail(user.email, otp).catch((err) => 
+      console.error("Password reset email failed:", err.message)
+    );
+
+    return res.status(200).json({ message: "Reset code sent successfully." });
+  } catch (error) {
+    return res.status(500).json({ message: "Request failed", error: error.message });
+  }
+};
+
+// ─── Verify Reset OTP ──────────────────────────────────────────────────────
+const verifyResetOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) return res.status(400).json({ message: "Email and OTP are required" });
+
+    const user = await User.findOne({ email });
+    if (!user || !user.resetOTP) return res.status(400).json({ message: "Invalid or expired OTP" });
+
+    if (user.resetOTPExpiry < new Date()) {
+      user.resetOTP = undefined;
+      user.resetOTPExpiry = undefined;
+      await user.save();
+      return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+    }
+
+    const isValidOTP = await bcrypt.compare(otp, user.resetOTP);
+    if (!isValidOTP) return res.status(400).json({ message: "Invalid or expired OTP" });
+
+    // Generate a temporary token to authorize the password reset step
+    const resetToken = jwt.sign(
+      { userId: user._id, purpose: "reset_password" },
+      process.env.JWT_SECRET || "fallback_secret",
+      { expiresIn: "15m" }
+    );
+
+    // Optionally we can clear the OTP here, but maybe we keep it until password is fully reset, 
+    // or just clear it now since we issued a resetToken.
+    user.resetOTP = undefined;
+    user.resetOTPExpiry = undefined;
+    await user.save();
+
+    return res.status(200).json({ message: "OTP verified correctly", resetToken });
+  } catch (error) {
+    return res.status(500).json({ message: "Verification failed", error: error.message });
+  }
+};
+
+// ─── Reset Password ────────────────────────────────────────────────────────
+const resetPassword = async (req, res) => {
+  try {
+    const { email, resetToken, newPassword } = req.body;
+    if (!email || !resetToken || !newPassword) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    // Verify token
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, process.env.JWT_SECRET || "fallback_secret");
+    } catch (err) {
+      return res.status(400).json({ message: "Invalid or expired reset token. Please restart the process." });
+    }
+
+    if (decoded.purpose !== "reset_password") {
+      return res.status(400).json({ message: "Invalid token purpose" });
+    }
+
+    const user = await User.findById(decoded.userId);
+    if (!user || user.email !== email) {
+      return res.status(400).json({ message: "Invalid request" });
+    }
+
+    // Update password (pre-save hook in schema will hash it again)
+    user.password = newPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password has been successfully reset. You can now log in." });
+  } catch (error) {
+    return res.status(500).json({ message: "Password reset failed", error: error.message });
+  }
+};
+
+module.exports = { registerUser, verifyEmail, resendOTP, loginUser, forgotPassword, verifyResetOTP, resetPassword };
