@@ -249,7 +249,7 @@ const CreateTrip = () => {
          ? [{ hotelName: sameStay.hotelName, location: sameStay.location, roomType: sameStay.roomType, mealPlan: sameStay.mealPlan, amenities: sameStay.amenities.split(",").map(i => i.trim()).filter(Boolean), checkIn: sameStay.checkIn, checkOut: sameStay.checkOut }]
          : perDayStay.map(s => ({ day: s.day, hotelName: s.hotelName, location: s.location, roomType: s.roomType, mealPlan: s.mealPlan, amenities: s.amenities.split(",").map((i: string) => i.trim()).filter(Boolean), checkIn: s.checkIn, checkOut: s.checkOut }));
 
-      const jsonPayload = {
+      const jsonPayload: Record<string, unknown> = {
         title: basic.title,
         description: basic.description,
         travelStyle: basic.travelStyle,
@@ -284,15 +284,22 @@ const CreateTrip = () => {
         
         supervisors: supervisors.map(s => ({ ...s, experience: Number(s.experience) || 0 })),
         tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
+        images: [] as string[],
       };
 
-      const formData = new FormData();
-      formData.append("tripData", JSON.stringify(jsonPayload));
-      images.forEach((img) => formData.append("images", img));
+      // Step 1: Upload images to Cloudinary (if any)
+      if (images.length > 0) {
+        const imageFormData = new FormData();
+        images.forEach((img) => imageFormData.append("images", img));
 
-      const res = await axiosApi.post("/trips", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+        const uploadRes = await axiosApi.post("/upload", imageFormData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        jsonPayload.images = uploadRes.data.urls || [];
+      }
+
+      // Step 2: Create the trip with Cloudinary URLs as plain JSON
+      const res = await axiosApi.post("/trips", jsonPayload);
       
       addTrip(res.data.trip);
       toast.success("Trip created successfully! 🎉");

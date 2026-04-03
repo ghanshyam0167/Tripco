@@ -43,7 +43,6 @@ app.use(
 // ─── Body parser ───────────────────────────────────────────────────────────
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // ─── Rate limiters ─────────────────────────────────────────────────────────
 const authLimiter = rateLimit({
@@ -64,25 +63,42 @@ const globalLimiter = rateLimit({
 app.use(globalLimiter);
 
 // ─── Routes ────────────────────────────────────────────────────────────────
-const authRoutes     = require("./routes/authRoutes");
+const authRoutes = require("./routes/authRoutes");
 const travelerRoutes = require("./routes/travelerRoutes");
-const companyRoutes  = require("./routes/companyRoutes");
-const tripRoutes     = require("./routes/tripRoutes");
-const bookingRoutes  = require("./routes/bookingRoutes");
-const adminRoutes    = require("./routes/adminRoutes");
+const companyRoutes = require("./routes/companyRoutes");
+const tripRoutes = require("./routes/tripRoutes");
+const bookingRoutes = require("./routes/bookingRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const uploadRoutes = require("./routes/uploadRoutes");
 
 const errorHandler = require("./middlewares/errorHandler");
-const notFound     = require("./middlewares/notFound");
+const notFound = require("./middlewares/notFound");
 
 app.get("/", (req, res) => res.json({ message: "Tripco API 🚀", version: "1.0.0" }));
 app.get("/health", (req, res) => res.json({ status: "OK", timestamp: new Date() }));
 
-app.use("/api/auth",     authLimiter, authRoutes);
+// Test route to verify Cloudinary configuration
+app.get("/test-cloudinary", async (req, res) => {
+  try {
+    const cloudinary = require("cloudinary").v2;
+    const result = await cloudinary.uploader.upload(
+      "https://res.cloudinary.com/demo/image/upload/sample.jpg",
+      { folder: "tripco_test" }
+    );
+    res.json({ success: true, result });
+  } catch (error) {
+    console.error("Cloudinary Test Error:", error);
+    res.status(500).json({ success: false, error: error.message || error, fullError: error });
+  }
+});
+
+app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/traveler", travelerRoutes);
-app.use("/api/company",  companyRoutes);
-app.use("/api/trips",    tripRoutes);
+app.use("/api/company", companyRoutes);
+app.use("/api/trips", tripRoutes);
 app.use("/api/bookings", bookingRoutes);
-app.use("/api/admin",    adminRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/upload", uploadRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

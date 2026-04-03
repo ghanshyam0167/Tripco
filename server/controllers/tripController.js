@@ -18,25 +18,17 @@ const createTrip = async (req, res) => {
       return res.status(403).json({ message: "Company must be approved to create trips" });
     }
 
-    let parsedData = {};
+    let parsedData = req.body;
+    // Fallback if frontend still sends FormData
     if (req.body.tripData) {
       try {
         parsedData = JSON.parse(req.body.tripData);
       } catch (err) {
         return res.status(400).json({ message: "Invalid JSON in tripData" });
       }
-    } else {
-      parsedData = req.body;
     }
 
-    // Capture file URLs
-    const imagePaths = [];
-    if (req.files && req.files.length > 0) {
-      req.files.forEach((file) => {
-        // e.g., /uploads/images-123.jpg
-        imagePaths.push(`/uploads/${file.filename}`);
-      });
-    }
+    const imagePaths = parsedData.images || [];
 
     const tripData = {
       ...parsedData,
