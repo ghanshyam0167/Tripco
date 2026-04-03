@@ -38,10 +38,8 @@ const registerUser = async (req, res) => {
       isEmailVerified: false,
     });
 
-    // Send OTP (non-blocking)
-    sendOTPEmail(email, otp).catch((err) =>
-      console.error("OTP send failed:", err.message)
-    );
+    // Send OTP (blocking to ensure Vercel doesn't suspend execution)
+    await sendOTPEmail(email, otp);
 
     return res.status(201).json({
       message: "Registration successful. Please check your email for a verification code.",
@@ -116,9 +114,7 @@ const resendOTP = async (req, res) => {
     user.emailOTPExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    sendOTPEmail(user.email, otp).catch((err) =>
-      console.error("OTP resend failed:", err.message)
-    );
+    await sendOTPEmail(user.email, otp);
 
     return res.status(200).json({ message: "A new verification code has been sent to your email." });
   } catch (error) {
@@ -175,9 +171,7 @@ const forgotPassword = async (req, res) => {
     user.resetOTPExpiry = otpExpiry;
     await user.save();
 
-    sendPasswordResetEmail(user.email, otp).catch((err) => 
-      console.error("Password reset email failed:", err.message)
-    );
+    await sendPasswordResetEmail(user.email, otp);
 
     return res.status(200).json({ message: "Reset code sent successfully." });
   } catch (error) {
